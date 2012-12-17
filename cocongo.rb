@@ -18,7 +18,7 @@ class Menu # {{{
     }
     return self
   end
-  def print()
+  def print
     @items.each { |shortcut, item|
       puts "  " + shortcut + ": " + item['var'] + " [" + itemVal(shortcut) + "]"
     }
@@ -47,10 +47,26 @@ class Menu # {{{
     return gets
   end
   def saveVars
-    File.new('vars.cfg', 'w'){|f|
-      f.puts 'items = {'
-      @items.each{}
+    File.open('vars.rb', 'w'){|f|
+      f.puts 'module Vars'
+      @items.each {|shortcut, item|
+        val = itemVal(shortcut)
+        val = val.gsub(/"/,'\"')
+        f.puts '  ' + item['var'].upcase + '="' + val + '"'
+      }
+      f.puts "end\n"
     }
+  end
+  def loadVars
+    if File.exists?('vars.rb')
+      require_relative 'vars.rb'
+      @items.each { |shortcut, item|
+        c = item['var'].upcase.to_sym
+        if Vars.const_defined?(c)
+          @items[shortcut]['value'] == Vars.const_get(c)
+        end
+      }
+    end
   end
 end # }}}
 
@@ -58,9 +74,10 @@ class Cocongo # {{{
   @@sysCmds = ['.', '!']
   def initialize(m)
     @menu = m
+    m.loadVars
   end
   def menu
-    @menu.print()
+    @menu.print
     puts HELP
   end
   def menuPrompt
@@ -90,7 +107,10 @@ class Cocongo # {{{
   def handleCmd(cmd)
     if @menu.hasShortcut?(cmd)
       return cmd
-    elsif cmd == '.' || cmd == '!'
+    elsif cmd == '.'
+      @menu.saveVars
+      return cmd
+    elsif cmd == '!'
       return cmd
     else
       puts 'Unknown command ' + cmd
@@ -102,10 +122,8 @@ end # }}}
 m = Menu.new()
 m
  .add('a', 'varA', '', '')
- .add('b', 'varB', '', '')
-
-y m.items.inspect
+ .add('b', 'varB', 'num', 0)
 
 c= Cocongo.new(m)
-#c.run()
+c.run()
 
