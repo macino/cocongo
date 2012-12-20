@@ -108,10 +108,17 @@ class Generator # {{{
 end # }}}
 
 class Cocongo # {{{
-  def initialize(menu ,generator)
-    @menu = menu
-    @generator = generator
-    menu.loadVars
+  def initialize
+    @menu = Menu.new
+    @generator = Generator.new
+  end
+  def var (shortcut, var, hint, default)
+    @menu.add(shortcut, var, hint, default)
+    return self
+  end
+  def tpl (infile, outfile)
+    @generator.add(infile, outfile)
+    return self
   end
   def menu
     @menu.print
@@ -125,6 +132,7 @@ class Cocongo # {{{
     return @menu.prompt(shortcut)
   end
   def run
+    @menu.loadVars
     cmd= ''
     quit = false
     while !quit
@@ -157,15 +165,10 @@ class Cocongo # {{{
   end
 end # }}}
 
-m = Menu.new
-m
-  .add('a', 'varA', '', '')
-  .add('b', 'varB', 'num', 0)
-
-g = Generator.new
-g
-  .add('test.in', 'test.out')
-
-c= Cocongo.new(m, g)
-c.run()
+c= Cocongo.new
+c
+  .var('a', 'varA', '', '')
+  .var('b', 'varB', 'num', 0)
+  .tpl('test.in', 'test.out')
+  .run()
 
