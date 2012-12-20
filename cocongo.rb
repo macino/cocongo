@@ -1,3 +1,4 @@
+require 'erb'
 
 HELP = <<HELP_STR
   ---
@@ -25,7 +26,7 @@ class Menu # {{{
   end
   def itemVal(shortcut)
     item = item(shortcut)
-    return item['value'] ? item['value'] : item['default'];
+    return item['value'] || item['default'];
   end
   def item(shortcut)
     return @items[shortcut]
@@ -63,18 +64,54 @@ class Menu # {{{
       @items.each { |shortcut, item|
         c = item['var'].upcase.to_sym
         if Vars.const_defined?(c)
-          @items[shortcut]['value'] == Vars.const_get(c)
+          @items[shortcut]['value'] = Vars.const_get(c)
         end
       }
     end
   end
 end # }}}
 
+class Generator # {{{
+  def initialize
+    @tpls = Array.new
+    @data = Hash.new
+  end
+  def add (infile, outfile)
+    @tpls.push({
+      'in' => infile,
+      'out' => outfile,
+    })
+    return self
+  end
+  def addData (data)
+    @data = @data + data
+    return self
+  end
+  def d (key)
+   return @data[key]
+  end
+  def dataFromMenu (menu)
+    menu.items.each { |shortcut, item|
+      @data[item['var']] = menu.itemVal(shortcut)
+    }
+    return self
+  end
+  def generate
+    @tpls.each { |tpl|
+      out = ERB.new(File.read(tpl['in']))
+      File.write(tpl['out'], out.result(getBinding).gsub(/\r\n/, "\n"))
+    }
+  end
+  def getBinding
+    return binding
+  end
+end # }}}
+
 class Cocongo # {{{
-  @@sysCmds = ['.', '!']
-  def initialize(m)
-    @menu = m
-    m.loadVars
+  def initialize(menu ,generator)
+    @menu = menu
+    @generator = generator
+    menu.loadVars
   end
   def menu
     @menu.print
@@ -109,6 +146,7 @@ class Cocongo # {{{
       return cmd
     elsif cmd == '.'
       @menu.saveVars
+      @generator.dataFromMenu(@menu).generate
       return cmd
     elsif cmd == '!'
       return cmd
@@ -119,11 +157,15 @@ class Cocongo # {{{
   end
 end # }}}
 
-m = Menu.new()
+m = Menu.new
 m
- .add('a', 'varA', '', '')
- .add('b', 'varB', 'num', 0)
+  .add('a', 'varA', '', '')
+  .add('b', 'varB', 'num', 0)
 
-c= Cocongo.new(m)
+g = Generator.new
+g
+  .add('test.in', 'test.out')
+
+c= Cocongo.new(m, g)
 c.run()
 

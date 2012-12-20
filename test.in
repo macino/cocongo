@@ -1,0 +1,3 @@
+Variable varB is <%=d('varB') %>
+
+Variable varA is something like <%=d('varA') %>
