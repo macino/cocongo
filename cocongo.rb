@@ -2,7 +2,7 @@ require 'erb'
 
 HELP = <<HELP_STR
   ---
-  . - save the properties, generate configs and exits
+  . - save the properties, generate configs and exit
   ! - exit without saving
 HELP_STR
 
