@@ -97,9 +97,10 @@ class Generator # {{{
     return self
   end
   def generate
+    $\ = "\n"
     @tpls.each { |tpl|
       out = ERB.new(File.read(tpl['in']))
-      File.write(tpl['out'], out.result(getBinding).gsub(/\r\n/, "\n"))
+      File.write(tpl['out'], out.result(getBinding))
     }
   end
   def getBinding
@@ -164,11 +165,4 @@ class Cocongo # {{{
     end
   end
 end # }}}
-
-c= Cocongo.new
-c
-  .var('a', 'varA', '', '')
-  .var('b', 'varB', 'num', 0)
-  .tpl('test.in', 'test.out')
-  .run()
 
