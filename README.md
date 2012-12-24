@@ -10,7 +10,7 @@ the variables at one place.
 
 * __Author:__ Tomáš Macik
 * __Mail:__ <tomas.macik@gmail.com>
-* __Homepage:__ <http://hg.bigant.eu/cococngo>
+* __Homepage:__ <https://github.com/macino/cocongo>
 
 Quickstart
 ----------
